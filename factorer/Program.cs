@@ -48,20 +48,29 @@ namespace Factorer
                 
             }*/
 
-            if (tbf <= 4294967295) // optimize for smaller user input values
+            if (tbf <= 4294967295) // crudely optimize for smaller user input values
             {
                 if (tbf <= 65535)
                 {
                     if (tbf <= 255)
                     {
                         tbf = (byte)tbf;
+                        fct = (byte)fct;
+                        expn = (byte)expn;
+                        totalFct = (byte)totalFct;
                         Console.WriteLine("Switched to byte!");
                     } else {
                         tbf = (ushort)tbf;
+                        fct = (ushort)fct;
+                        expn = (ushort)expn;
+                        totalFct = (ushort)totalFct;
                         Console.WriteLine("Switched to ushort!");
                     }
                 } else {
                     tbf = (uint)tbf;
+                    fct = (uint)fct;
+                    expn = (uint)expn;
+                    totalFct = (uint)totalFct;
                     Console.WriteLine("Switched to uint!");
                 }
             } else {
@@ -77,16 +86,14 @@ namespace Factorer
                  * increment fct and reset expn to 0. */
                 if (tbf % fct == 0)
                 {
-                    Console.WriteLine("Just got factored down to:");
+                    Console.WriteLine("Now factored down to:");
                     Console.WriteLine(tbf /= fct);
                     expn++;
                     totalFct++;
                     Console.WriteLine(expn);
                 } else {
-                    // expn > 0 ? 
-                    
                     Console.WriteLine("Next factor to try:");
-                    fct++;
+                    fct++; // extremely wasteful as only primes need be tried; need list of primes
                     Console.WriteLine(fct);
                     expn = 0;
                 };
@@ -95,7 +102,7 @@ namespace Factorer
             Console.WriteLine("Total factors:");
             Console.WriteLine(totalFct);
 
-
+            /*
 
             // Open the text file using a stream reader.
             // From https://docs.microsoft.com/en-us/dotnet/standard/io/how-to-read-text-from-a-file
@@ -109,6 +116,8 @@ namespace Factorer
 
             Console.WriteLine("toWrite outside SR:");
             Console.WriteLine(toWrite);
+            
+            */
 
             // File.WriteAllText(Path.Combine(docPath, "factors.txt"), toWrite);
 
