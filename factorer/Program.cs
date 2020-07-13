@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq; // for enum.Last() when reading file
 
 namespace Factorer
 {
@@ -26,27 +27,30 @@ namespace Factorer
             ulong expn = 0, // exponent of each factor
                 totalFct = 0; // total factor count, to be discovered and returned
 
-            /* From https://docs.microsoft.com/en-us/dotnet/standard/io/how-to-write-text-to-a-file#example-write-and-append-text-with-the-file-class
-             * Note that docPath is assigned to ~\OneDrive\Documents\ */
+            // From https://docs.microsoft.com/en-us/dotnet/standard/io/how-to-write-text-to-a-file#example-write-and-append-text-with-the-file-class
+            // Note that docPath is assigned to ~\OneDrive\Documents\
             string docPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                toWrite = ""; // for LATER
+                toWrite = "";
 
-            /*
-            do // prompt to save to file
+            // Open the text file using a stream reader.
+            // From https://docs.microsoft.com/en-us/dotnet/standard/io/how-to-read-text-from-a-file
+            using (StreamReader sr = new StreamReader("factors.txt"))
             {
-                Console.WriteLine("Save to file? y/n ");
-                saveFile = Console.ReadLine().ToLower();
-            } while (saveFile != "y" && saveFile != "n");
+                // Read the stream to a string, and write the string to the console
+                toWrite = sr.ReadToEnd();
+                Console.WriteLine("toWrite within SR:");
+                Console.WriteLine(toWrite);
+            }
 
-            if (saveFile == "y")
-            {
-                /* From https://docs.microsoft.com/en-us/dotnet/standard/io/how-to-write-text-to-a-file#example-write-and-append-text-with-the-file-class
-                 * (need string for text)
-                
-                string docPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                File.WriteAllText(Path.Combine(docPath, "factors.txt"), text);
-                
-            }*/
+            Console.WriteLine("toWrite outside SR:");
+            Console.WriteLine(toWrite);
+
+            // parse record for last entry
+            string[] fileFcts = toWrite.Split("\n");
+            string lastTbf = fileFcts[fileFcts.Length - 2].Split(",")[0];
+
+            Console.WriteLine("Last factored from file:");
+            Console.WriteLine(lastTbf);
 
             if (tbf <= 4294967295) // crudely optimize for smaller user input values
             {
@@ -83,7 +87,7 @@ namespace Factorer
             {
                 /* If fct is a factor of tbf, then reassign tbf to its divisor with fct 
                  * and increment current exponent and total factor count; otherwise, 
-                 * increment fct and reset expn to 0. */
+                 * try next fct and reset expn to 0. */
                 if (tbf % fct == 0)
                 {
                     Console.WriteLine("Now factored down to:");
@@ -102,20 +106,7 @@ namespace Factorer
             Console.WriteLine("Total factors:");
             Console.WriteLine(totalFct);
 
-            // Open the text file using a stream reader.
-            // From https://docs.microsoft.com/en-us/dotnet/standard/io/how-to-read-text-from-a-file
-            using (StreamReader sr = new StreamReader("factors.txt"))
-            {
-                // Read the stream to a string, and write the string to the console
-                toWrite = sr.ReadToEnd();
-                Console.WriteLine("toWrite within SR:");
-                Console.WriteLine(toWrite);
-            }
-
-            Console.WriteLine("toWrite outside SR:");
-            Console.WriteLine(toWrite);
-
-            File.WriteAllText("factors.txt", toWrite + "11,1\n");
+            // File.WriteAllText("factors.txt", toWrite + "\n");
 
             return totalFct;
         }
