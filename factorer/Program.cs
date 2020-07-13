@@ -25,15 +25,13 @@ namespace Factorer
             } while (userInput > 0);
         }
         
-        static ulong Factor()
+        static void Factor()
         {
             ulong fct = 2,
                 expn = 0, // exponent of each factor
-                totalFct = 0, // total factor count, to be discovered and returned
+                totalFct = 0, // total factor count, to be discovered
                 tbf = 0; // next to be factored
 
-            // From https://docs.microsoft.com/en-us/dotnet/standard/io/how-to-write-text-to-a-file#example-write-and-append-text-with-the-file-class
-            // Note that docPath is assigned to ~\OneDrive\Documents\
             string toWrite = "";
 
             // Open the text file using a stream reader.
@@ -46,6 +44,8 @@ namespace Factorer
             // parse file contents for last entry
             string[] fileFcts = toWrite.Split("\n");
             tbf = Convert.ToUInt64(fileFcts[fileFcts.Length - 2].Split(",")[0]) + 1;
+            
+            // update file output
             toWrite = toWrite + $"{tbf},";
 
             Console.WriteLine("Last factored from file:");
@@ -105,11 +105,9 @@ namespace Factorer
             Console.WriteLine("Total factors:");
             Console.WriteLine(totalFct);
 
-            toWrite = toWrite + totalFct.ToString() + "\r\n";
+            toWrite = toWrite + $"{totalFct}\r\n";
 
             File.WriteAllText("factors.txt", toWrite);
-
-            return totalFct;
         }
     }
 }
