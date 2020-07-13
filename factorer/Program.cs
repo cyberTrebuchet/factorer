@@ -102,8 +102,6 @@ namespace Factorer
             Console.WriteLine("Total factors:");
             Console.WriteLine(totalFct);
 
-            /*
-
             // Open the text file using a stream reader.
             // From https://docs.microsoft.com/en-us/dotnet/standard/io/how-to-read-text-from-a-file
             using (StreamReader sr = new StreamReader("factors.txt"))
@@ -116,10 +114,8 @@ namespace Factorer
 
             Console.WriteLine("toWrite outside SR:");
             Console.WriteLine(toWrite);
-            
-            */
 
-            // File.WriteAllText(Path.Combine(docPath, "factors.txt"), toWrite);
+            File.WriteAllText("factors.txt", toWrite + "11,1\n");
 
             return totalFct;
         }
