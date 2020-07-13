@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Linq; // for enum.Last() when reading file
 
 namespace Factorer
 {
@@ -11,46 +10,46 @@ namespace Factorer
         {
             ulong userInput;
 
-            Console.WriteLine("Enter a positive integer up to 18,446,744,073,709,551,615 to be factored: ");
+            // Console.WriteLine("Enter a positive integer up to 18,446,744,073,709,551,615 to be factored: ");
+
+            Console.WriteLine("How many more numbers shall we factor today, Supreme Commander? ");
 
             userInput = Convert.ToUInt64(Console.ReadLine());
 
             Console.WriteLine(userInput);
 
-            // Factor(userInput);
-
-            Console.WriteLine(Factor(2, userInput));
+            do
+            {
+                Factor();
+                userInput--;
+            } while (userInput > 0);
         }
-        // fct is factor, tbf is to-be-factored user input
-        static ulong Factor(ulong fct, ulong tbf) 
+        
+        static ulong Factor()
         {
-            ulong expn = 0, // exponent of each factor
-                totalFct = 0; // total factor count, to be discovered and returned
+            ulong fct = 2,
+                expn = 0, // exponent of each factor
+                totalFct = 0, // total factor count, to be discovered and returned
+                tbf = 0; // next to be factored
 
             // From https://docs.microsoft.com/en-us/dotnet/standard/io/how-to-write-text-to-a-file#example-write-and-append-text-with-the-file-class
             // Note that docPath is assigned to ~\OneDrive\Documents\
-            string docPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                toWrite = "";
+            string toWrite = "";
 
             // Open the text file using a stream reader.
             // From https://docs.microsoft.com/en-us/dotnet/standard/io/how-to-read-text-from-a-file
             using (StreamReader sr = new StreamReader("factors.txt"))
             {
-                // Read the stream to a string, and write the string to the console
                 toWrite = sr.ReadToEnd();
-                Console.WriteLine("toWrite within SR:");
-                Console.WriteLine(toWrite);
             }
 
-            Console.WriteLine("toWrite outside SR:");
-            Console.WriteLine(toWrite);
-
-            // parse record for last entry
+            // parse file contents for last entry
             string[] fileFcts = toWrite.Split("\n");
-            string lastTbf = fileFcts[fileFcts.Length - 1].Split(",")[0];
+            tbf = Convert.ToUInt64(fileFcts[fileFcts.Length - 2].Split(",")[0]) + 1;
+            toWrite = toWrite + $"{tbf},";
 
             Console.WriteLine("Last factored from file:");
-            Console.WriteLine(lastTbf);
+            Console.WriteLine(tbf - 1);
 
             if (tbf <= 4294967295) // crudely optimize for smaller user input values
             {
@@ -106,7 +105,9 @@ namespace Factorer
             Console.WriteLine("Total factors:");
             Console.WriteLine(totalFct);
 
-            // File.WriteAllText("factors.txt", toWrite + "\n");
+            toWrite = toWrite + totalFct.ToString() + "\r\n";
+
+            File.WriteAllText("factors.txt", toWrite);
 
             return totalFct;
         }
