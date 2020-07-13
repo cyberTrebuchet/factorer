@@ -47,7 +47,7 @@ namespace Factorer
 
             // parse record for last entry
             string[] fileFcts = toWrite.Split("\n");
-            string lastTbf = fileFcts[fileFcts.Length - 2].Split(",")[0];
+            string lastTbf = fileFcts[fileFcts.Length - 1].Split(",")[0];
 
             Console.WriteLine("Last factored from file:");
             Console.WriteLine(lastTbf);
