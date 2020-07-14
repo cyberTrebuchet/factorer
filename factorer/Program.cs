@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Factorer
 {
-    static 
+    static
     class Program
     {
         static void Main(string[] args)
@@ -24,12 +24,34 @@ namespace Factorer
                 userInput--;
             } while (userInput > 0);
         }
-        
+        // predicate delegate function for Array.FindAll in Factor()
+        // from https://docs.microsoft.com/en-us/dotnet/api/system.array.findall?view=netcore-3.1
+        // and https://docs.microsoft.com/en-us/dotnet/api/system.predicate-1?view=netcore-3.1
+        static bool PrimeCheck(string fctd)
+        {
+            if (fctd == "") { return false; } // for last line of file
+            int startIndex = fctd.Length - 1;
+            string lastChar = fctd.Substring(startIndex, 1);
+            // trim \r - comment out for UNIX?
+            if (lastChar == "\r")
+            {
+                fctd = fctd.Substring(0, fctd.Length - 1); // trim last char
+                Console.WriteLine($"Trimmed carriage return on {fctd}");
+            }
+            // return true if fctd has 1 prime factor
+            return Convert.ToInt16(fctd.Split(",")[1]) == 1;
+        }
+        // string check delegate
+        // from https://docs.microsoft.com/en-us/dotnet/api/system.action-1?view=netcore-3.1
+        static void ConWr(string str)
+        {
+            Console.WriteLine(str);
+        }
         static void Factor()
         {
-            ulong fct = 2,
+            ulong fct = 2, // current factor for looping
                 expn = 0, // exponent of each factor
-                totalFct = 0, // total factor count, to be discovered
+                totalFct = 0, // total factors of each tbf, to be discovered
                 tbf = 0; // next to be factored
 
             string toWrite = "";
@@ -41,9 +63,17 @@ namespace Factorer
                 toWrite = sr.ReadToEnd();
             }
 
-            // parse file contents for last entry
-            string[] fileFcts = toWrite.Split("\n");
-            tbf = Convert.ToUInt64(fileFcts[fileFcts.Length - 2].Split(",")[0]) + 1;
+            // parse file contents for last entry and primes, removing trailing \n
+            string[] fileFcts = toWrite.Substring(0, toWrite.Length - 1).Split("\n");
+            // assign tbf to the last factored number plus one
+            tbf = Convert.ToUInt64(fileFcts[fileFcts.Length - 1].Split(",")[0]) + 1;
+
+            // get list of primes
+            // from https://docs.microsoft.com/en-us/dotnet/api/system.predicate-1?view=netcore-3.1
+            Predicate<string> predicate = PrimeCheck;
+            string[] oldPrimes = Array.FindAll(fileFcts, predicate);
+
+            Array.ForEach(oldPrimes, ConWr);
             
             // update file output
             toWrite = toWrite + $"{tbf},";
@@ -97,6 +127,8 @@ namespace Factorer
                 } else {
                     Console.WriteLine("Next factor to try:");
                     fct++; // extremely wasteful as only primes need be tried; need list of primes
+                    // factor only primes
+
                     Console.WriteLine(fct);
                     expn = 0;
                 };
