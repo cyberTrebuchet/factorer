@@ -1,4 +1,19 @@
-﻿using System;
+﻿/*
+ * Factorer in C#
+ * v0.0.0101
+ * by Britt Crozier
+ * in Visual Studio 2019
+ * 
+ * distributed under
+ * the terms and conditions of
+ * the GNU General Public License 3.0 or later
+ * 
+ * This program calculates and records the prime factors
+ * of the next x consecutive integers via file IO, limited
+ * only by the upper bound of type ulong.
+ */
+
+using System;
 using System.IO;
 
 namespace Factorer
@@ -9,8 +24,6 @@ namespace Factorer
         static void Main(string[] args)
         {
             ulong userInput;
-
-            // Console.WriteLine("Enter a positive integer up to 18,446,744,073,709,551,615 to be factored: ");
 
             Console.WriteLine("How many more numbers shall we factor today, Supreme Commander? ");
 
@@ -29,16 +42,16 @@ namespace Factorer
         // and https://docs.microsoft.com/en-us/dotnet/api/system.predicate-1?view=netcore-3.1
         static bool PrimeCheck(string fctd)
         {
-            if (fctd == "") { return false; } // for last line of file
+            if (fctd == "") { return false; } // for last line of factors.txt
             int startIndex = fctd.Length - 1;
             string lastChar = fctd.Substring(startIndex, 1);
-            // trim \r - comment out for UNIX?
-            if (lastChar == "\r")
+            
+            if (lastChar == "\r") // trim \r - comment out for UNIX?
             {
                 fctd = fctd.Substring(0, fctd.Length - 1); // trim last char
                 Console.WriteLine($"Trimmed carriage return on {fctd}");
             }
-            // return true if fctd has 1 prime factor
+            // return true if this fctd has only 1 prime factor
             return Convert.ToInt16(fctd.Split(",")[1]) == 1;
         }
         // string check delegate
