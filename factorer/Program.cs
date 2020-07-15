@@ -62,10 +62,9 @@ namespace Factorer
         }
         static void Factor()
         {
-            ulong fct = 2, // current factor for looping
-                expn = 0, // exponent of each factor
-                totalFct = 0, // total factors of each tbf, to be discovered
-                tbf = 0; // next to be factored
+            ulong totalFct = 0, // total factors of each tbf, to be discovered
+                tbf = 0, // next to be factored
+                tbf0 = 0; // to hold original value of tbf in the while loop
 
             string toWrite = "";
 
@@ -80,6 +79,7 @@ namespace Factorer
             string[] fileFcts = toWrite.Substring(0, toWrite.Length - 1).Split("\n");
             // assign tbf to the last factored number plus one
             tbf = Convert.ToUInt64(fileFcts[fileFcts.Length - 1].Split(",")[0]) + 1;
+            tbf0 = tbf;
 
             // get list of primes
             // from https://docs.microsoft.com/en-us/dotnet/api/system.predicate-1?view=netcore-3.1
@@ -94,60 +94,81 @@ namespace Factorer
             Console.WriteLine("Last factored from file:");
             Console.WriteLine(tbf - 1);
 
-            if (tbf <= 4294967295) // crudely optimize for smaller user input values
+            if (tbf <= 4294967295) // crudely optimize for smaller values by recasting
             {
                 if (tbf <= 65535)
                 {
                     if (tbf <= 255)
                     {
                         tbf = (byte)tbf;
-                        fct = (byte)fct;
-                        expn = (byte)expn;
+                        tbf0 = (byte)tbf0;
                         totalFct = (byte)totalFct;
-                        Console.WriteLine("Switched to byte!");
                     } else {
                         tbf = (ushort)tbf;
-                        fct = (ushort)fct;
-                        expn = (ushort)expn;
+                        tbf0 = (ushort)tbf0;
                         totalFct = (ushort)totalFct;
-                        Console.WriteLine("Switched to ushort!");
                     }
                 } else {
                     tbf = (uint)tbf;
-                    fct = (uint)fct;
-                    expn = (uint)expn;
+                    tbf0 = (uint)tbf0;
                     totalFct = (uint)totalFct;
-                    Console.WriteLine("Switched to uint!");
                 }
-            } else {
-                Console.WriteLine("Sticking with ulong!"); 
             }
 
             Console.WriteLine("Beginning with a factor of 2:");
 
-            do
+            do // factor tbf
             {
-                /* If fct is a factor of tbf, then reassign tbf to its divisor with fct 
-                 * and increment current exponent and total factor count; otherwise, 
-                 * try next fct and reset expn to 0. */
-                if (tbf % fct == 0)
+                Array.ForEach(oldPrimes, delegate(string prime)
                 {
-                    Console.WriteLine("Now factored down to:");
-                    Console.WriteLine(tbf /= fct);
-                    expn++;
-                    totalFct++;
-                    Console.WriteLine(expn);
-                } else {
+                    ulong fct = Convert.ToUInt64(prime.Split(",")[0]),
+                        expn = 0;
+
+                    if (fct <= 4294967295) // crudely optimize for smaller values by recasting
+                    {
+                        if (fct <= 65535)
+                        {
+                            if (fct <= 255)
+                            {
+                                fct = (byte)fct;
+                                expn = (byte)expn;
+                            } else {
+                                fct = (ushort)fct;
+                                expn = (ushort)expn;
+                            }
+                        } else {
+                            fct = (uint)fct;
+                            expn = (uint)expn;
+                        }
+                    }
+
                     Console.WriteLine("Next factor to try:");
-                    fct++; // extremely wasteful as only primes need be tried; need list of primes
-                    // factor only primes
-
                     Console.WriteLine(fct);
-                    expn = 0;
-                };
-            } while (tbf > 1);
 
-            Console.WriteLine("Total factors:");
+                    /* If fct is a factor of tbf, then reassign tbf to its divisor with fct 
+                     * and increment current exponent and total factor count */
+                    if (tbf % fct == 0)
+                    {
+                        Console.WriteLine("Now factored down to:");
+                        Console.WriteLine(tbf /= fct);
+                        expn++;
+                        totalFct++;
+                        Console.WriteLine(expn);
+                    }
+                    else if (fct * fct > tbf0 && totalFct == 0)
+                    {
+                        // If, however, fct is already at least root tbf0
+                        // and no prime factor has been found
+                        totalFct = 1; // then tbf0 is prime
+                    } else { expn = 0; } // otherwise, try next fct and reset expn to 0.
+                });
+                
+            } while (totalFct < 1); /* changed from (tbf > 1) to break if tbf
+             * isn't factored by the time fct is above root tbf0. The addition of
+             * the ForEach loop on the primes necessitated a break solution in case
+             * tbf itself is a new prime, otherwise infinite loop. */
+
+            Console.WriteLine("Total factors:"); // of tbf
             Console.WriteLine(totalFct);
 
             toWrite = toWrite + $"{totalFct}\r\n";
