@@ -1,6 +1,6 @@
 ﻿/*
  * Factorer in C#
- * v0.0.0101
+ * v0.1.0001
  * by Britt Crozier
  * in Visual Studio 2019
  * 
@@ -10,7 +10,8 @@
  * 
  * This program calculates and records the prime factors
  * of the next x consecutive integers via file IO, limited
- * only by the upper bound of type ulong.
+ * only by the upper bound of type ulong, with optimizations
+ * for values accomodable by smaller types.
  */
 
 using System;
@@ -21,6 +22,8 @@ namespace Factorer
     static
     class Program
     {
+        static ulong tbf0; // to hold original value of tbf, declared here
+        // to make available within both PrimeCheck and Factor()
         static void Main(string[] args)
         {
             ulong userInput;
@@ -29,13 +32,14 @@ namespace Factorer
 
             userInput = Convert.ToUInt64(Console.ReadLine());
 
-            Console.WriteLine(userInput);
+            Console.WriteLine($"\n{userInput} more number(s) coming right up!\n" +
+                "\n\t~ Enjoy Your Knowledge ~\n");
 
-            do
+            while (userInput > 0)
             {
                 Factor();
                 userInput--;
-            } while (userInput > 0);
+            }
         }
         // predicate delegate function for Array.FindAll in Factor()
         // from https://docs.microsoft.com/en-us/dotnet/api/system.array.findall?view=netcore-3.1
@@ -46,15 +50,18 @@ namespace Factorer
             int startIndex = fctd.Length - 1;
             string lastChar = fctd.Substring(startIndex, 1);
             
-            if (lastChar == "\r") // trim \r - comment out for UNIX?
+            if (lastChar == "\r") // trim \r ~ comment out for UNIX?
             {
                 fctd = fctd.Substring(0, fctd.Length - 1); // trim last char
-                Console.WriteLine($"Trimmed carriage return on {fctd}");
             }
-            // return true if this fctd has only 1 prime factor
-            return Convert.ToInt16(fctd.Split(",")[1]) == 1;
+
+            // return true if this fctd is prime (has only 1 prime factor)
+            // and is no greater than half of tbf0
+            string[] fctdA = fctd.Split(",");
+            return Convert.ToUInt64(fctdA[1]) == 1 
+                && Convert.ToUInt64(fctdA[0]) * 2 <= tbf0;
         }
-        // string check delegate
+        // string check delegate method for debugging
         // from https://docs.microsoft.com/en-us/dotnet/api/system.action-1?view=netcore-3.1
         static void ConWr(string str)
         {
@@ -62,39 +69,34 @@ namespace Factorer
         }
         static void Factor()
         {
-            ulong totalFct = 0, // total factors of each tbf, to be discovered
-                tbf = 0, // next to be factored
-                tbf0 = 0; // to hold original value of tbf in the while loop
+            ulong tbf, // next to be factored
+                totalFct = 0; // total prime factors of tbf, to be discovered
 
             string toWrite = "";
 
-            // Open the text file using a stream reader.
-            // From https://docs.microsoft.com/en-us/dotnet/standard/io/how-to-read-text-from-a-file
+            /* 
+             * Open the text file using a stream reader.
+             * For Windows Visual Studio 2019 build, file must be
+             * in directory Factorer\bin\Debug\netcoreapp3.1\
+             * A different path may be combined with the filename string
+             * using Path.Combine() as argument to StreamReader()
+             * From https://docs.microsoft.com/en-us/dotnet/standard/io/how-to-read-text-from-a-file
+             */
             using (StreamReader sr = new StreamReader("factors.txt"))
             {
                 toWrite = sr.ReadToEnd();
             }
 
-            // parse file contents for last entry and primes, removing trailing \n
+            // parse file contents into array of factored numbers, removing trailing \n
             string[] fileFcts = toWrite.Substring(0, toWrite.Length - 1).Split("\n");
             // assign tbf to the last factored number plus one
             tbf = Convert.ToUInt64(fileFcts[fileFcts.Length - 1].Split(",")[0]) + 1;
             tbf0 = tbf;
 
-            // get list of primes
-            // from https://docs.microsoft.com/en-us/dotnet/api/system.predicate-1?view=netcore-3.1
-            Predicate<string> predicate = PrimeCheck;
-            string[] oldPrimes = Array.FindAll(fileFcts, predicate);
-
-            Array.ForEach(oldPrimes, ConWr);
-            
-            // update file output
-            toWrite = toWrite + $"{tbf},";
-
-            Console.WriteLine("Last factored from file:");
-            Console.WriteLine(tbf - 1);
-
-            if (tbf <= 4294967295) // crudely optimize for smaller values by recasting
+            // Crudely optimize for smaller values by recasting.
+            // Omit any level of the following if tree,
+            // if only greater numbers will be used:
+            if (tbf <= 4294967295)
             {
                 if (tbf <= 65535)
                 {
@@ -115,58 +117,53 @@ namespace Factorer
                 }
             }
 
-            Console.WriteLine("Beginning with a factor of 2:");
+            // update file output
+            toWrite = toWrite + $"{tbf},";
 
-            do // factor tbf
+            Console.WriteLine("Next to factor:");
+            Console.WriteLine(tbf);
+
+            // get list of primes
+            // from https://docs.microsoft.com/en-us/dotnet/api/system.predicate-1?view=netcore-3.1
+            Predicate<string> predicate = PrimeCheck;
+            string[] oldPrimes = Array.FindAll(fileFcts, predicate);
+
+            // attempt to factor each prime fct into tbf
+            foreach(string prime in oldPrimes)
             {
-                Array.ForEach(oldPrimes, delegate(string prime)
+                if (tbf == 1) { break; } // break if it's already factored
+                ulong fct = Convert.ToUInt64(prime.Split(",")[0]); // current prime factor
+
+                // Crudely optimize for smaller values by recasting.
+                // Omit any level of the following if tree,
+                // if only greater numbers will be used:
+                if (fct <= 4294967295)
                 {
-                    ulong fct = Convert.ToUInt64(prime.Split(",")[0]),
-                        expn = 0;
-
-                    if (fct <= 4294967295) // crudely optimize for smaller values by recasting
+                    if (fct <= 65535)
                     {
-                        if (fct <= 65535)
+                        if (fct <= 255)
                         {
-                            if (fct <= 255)
-                            {
-                                fct = (byte)fct;
-                                expn = (byte)expn;
-                            } else {
-                                fct = (ushort)fct;
-                                expn = (ushort)expn;
-                            }
-                        } else {
-                            fct = (uint)fct;
-                            expn = (uint)expn;
-                        }
-                    }
+                            fct = (byte)fct;
+                        } else { fct = (ushort)fct; }
+                    } else { fct = (uint)fct; }
+                }
 
-                    Console.WriteLine("Next factor to try:");
-                    Console.WriteLine(fct);
+                Console.WriteLine("Next factor to try:");
+                Console.WriteLine(fct);
 
-                    /* If fct is a factor of tbf, then reassign tbf to its divisor with fct 
-                     * and increment current exponent and total factor count */
-                    if (tbf % fct == 0)
-                    {
-                        Console.WriteLine("Now factored down to:");
-                        Console.WriteLine(tbf /= fct);
-                        expn++;
-                        totalFct++;
-                        Console.WriteLine(expn);
-                    }
-                    else if (fct * fct > tbf0 && totalFct == 0)
-                    {
-                        // If, however, fct is already at least root tbf0
-                        // and no prime factor has been found
-                        totalFct = 1; // then tbf0 is prime
-                    } else { expn = 0; } // otherwise, try next fct and reset expn to 0.
-                });
-                
-            } while (totalFct < 1); /* changed from (tbf > 1) to break if tbf
-             * isn't factored by the time fct is above root tbf0. The addition of
-             * the ForEach loop on the primes necessitated a break solution in case
-             * tbf itself is a new prime, otherwise infinite loop. */
+                /* For as many times as fct is a factor of tbf,
+                 * reassign tbf to its divisor with fct and increment
+                 * current exponent and total factor count */
+                while (tbf % fct == 0)
+                {
+                    Console.WriteLine("Now factored down to:");
+                    Console.WriteLine(tbf /= fct);
+                    totalFct++;
+                }
+            }
+
+            // if no prime was a factor, then tbf was prime
+            if (totalFct == 0) { totalFct++; }
 
             Console.WriteLine("Total factors:"); // of tbf
             Console.WriteLine(totalFct);
